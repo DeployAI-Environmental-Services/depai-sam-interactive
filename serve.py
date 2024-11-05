@@ -1,19 +1,26 @@
 import sys
 
 sys.path.append("./src")
-from concurrent import futures
 import time
 import threading
+from concurrent import futures
 import grpc
-from src.app import app
+from app_pb2 import DummyResponse  # type: ignore
+from app_pb2_grpc import (
+    DashServiceServicer,
+    add_DashServiceServicer_to_server,
+)  # Import gRPC generated classes
+from src.app import app  # Your Dash app
 
 
-class MyServiceServicer:
-    pass
+class DashService(DashServiceServicer):
+    def RunDashApp(self, request, context):
+        return DummyResponse(response="This is a dummy response.")
 
 
 def serve_grpc():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    add_DashServiceServicer_to_server(DashService(), server)
     server.add_insecure_port("[::]:8061")
     server.start()
     print("gRPC server running on port 8061")

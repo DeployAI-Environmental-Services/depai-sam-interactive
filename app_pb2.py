@@ -24,15 +24,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapp.proto\x12\x03\x61pp\"\x07\n\x05\x45mpty23\n\x0b\x44\x61shService\x12$\n\nRunDashApp\x12\n.app.Empty\x1a\n.app.Emptyb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tapp.proto\x12\x03\x61pp\"\x1f\n\x0c\x44ummyRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"!\n\rDummyResponse\x12\x10\n\x08response\x18\x01 \x01(\t2B\n\x0b\x44\x61shService\x12\x33\n\nRunDashApp\x12\x11.app.DummyRequest\x1a\x12.app.DummyResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'app_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_EMPTY']._serialized_start=18
-  _globals['_EMPTY']._serialized_end=25
-  _globals['_DASHSERVICE']._serialized_start=27
-  _globals['_DASHSERVICE']._serialized_end=78
+  _globals['_DUMMYREQUEST']._serialized_start=18
+  _globals['_DUMMYREQUEST']._serialized_end=49
+  _globals['_DUMMYRESPONSE']._serialized_start=51
+  _globals['_DUMMYRESPONSE']._serialized_end=84
+  _globals['_DASHSERVICE']._serialized_start=86
+  _globals['_DASHSERVICE']._serialized_end=152
 # @@protoc_insertion_point(module_scope)

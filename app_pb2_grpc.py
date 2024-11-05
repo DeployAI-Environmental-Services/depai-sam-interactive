@@ -26,7 +26,8 @@ if _version_not_supported:
 
 
 class DashServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Define the service with input and output types
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -36,17 +37,17 @@ class DashServiceStub(object):
         """
         self.RunDashApp = channel.unary_unary(
                 '/app.DashService/RunDashApp',
-                request_serializer=app__pb2.Empty.SerializeToString,
-                response_deserializer=app__pb2.Empty.FromString,
+                request_serializer=app__pb2.DummyRequest.SerializeToString,
+                response_deserializer=app__pb2.DummyResponse.FromString,
                 _registered_method=True)
 
 
 class DashServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Define the service with input and output types
+    """
 
     def RunDashApp(self, request, context):
-        """This service does not take any input or return output.
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -56,8 +57,8 @@ def add_DashServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'RunDashApp': grpc.unary_unary_rpc_method_handler(
                     servicer.RunDashApp,
-                    request_deserializer=app__pb2.Empty.FromString,
-                    response_serializer=app__pb2.Empty.SerializeToString,
+                    request_deserializer=app__pb2.DummyRequest.FromString,
+                    response_serializer=app__pb2.DummyResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -68,7 +69,8 @@ def add_DashServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class DashService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Define the service with input and output types
+    """
 
     @staticmethod
     def RunDashApp(request,
@@ -85,8 +87,8 @@ class DashService(object):
             request,
             target,
             '/app.DashService/RunDashApp',
-            app__pb2.Empty.SerializeToString,
-            app__pb2.Empty.FromString,
+            app__pb2.DummyRequest.SerializeToString,
+            app__pb2.DummyResponse.FromString,
             options,
             channel_credentials,
             insecure,

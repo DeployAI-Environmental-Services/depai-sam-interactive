@@ -2,9 +2,16 @@ syntax = "proto3";
 
 package app;
 
-service DashService {
-    // This service does not take any input or return output.
-    rpc RunDashApp(Empty) returns (Empty);
+// Define request and response messages
+message DummyRequest {
+    string message = 1;  // Add a field for demonstration
 }
 
-message Empty {}
+message DummyResponse {
+    string response = 1;  // Add a field for demonstration
+}
+
+// Define the service with input and output types
+service DashService {
+    rpc RunDashApp(DummyRequest) returns (DummyResponse);
+}
