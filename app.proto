@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package app;
+
+service DashService {
+    // This service does not take any input or return output.
+    rpc RunDashApp(Empty) returns (Empty);
+}
+
+message Empty {}
