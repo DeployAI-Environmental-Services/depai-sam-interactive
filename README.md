@@ -11,6 +11,8 @@ SAM allows segmenting objects with spatial prompts that are in a form of boundin
     <img src="imgs/img_2.png" alt="Result" style="width: 45%;"/>
 </div>
 
+![Webapp SAM](imgs/web-sample.png)
+
 The user has two options:
 
 1. Draw a bounding box on the map that will define the ROI. Then draw other bounding boxes and points to define objects of interests to be segmented.
