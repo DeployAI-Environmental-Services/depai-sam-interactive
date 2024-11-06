@@ -5,7 +5,7 @@ import time
 import threading
 from concurrent import futures
 import grpc
-from app_pb2 import DummyResponse  # type: ignore
+from app_pb2 import DummyResponse  # type: ignore # pylint:disable=E0611
 from app_pb2_grpc import (
     DashServiceServicer,
     add_DashServiceServicer_to_server,

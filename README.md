@@ -1,10 +1,6 @@
 # Segment Anything for GeoTiff Images
 
-This repository contains a version of SAM for GTiff images.
-
-More details on how to use the model are available in `test_image_processor.py`.
-
-TODO: better documentation.
+This repository contains an interactive prompt segmentation using `Segment Anything Model`, built with Dash and Dash Leaflet.
 
 ## Key features
 
@@ -15,13 +11,15 @@ SAM allows segmenting objects with spatial prompts that are in a form of boundin
     <img src="imgs/img_2.png" alt="Result" style="width: 45%;"/>
 </div>
 
-## Image format
+The user has two options:
 
-The input images can be of any size. However, do not use very large images to avoid saturating the machine as the model consumes a lot of resources.
+1. Draw a bounding box on the map that will define the ROI. Then draw other bounding boxes and points to define objects of interests to be segmented.
+2. Upload their own image and draw bounding boxes and points to define the objects of interest.
+3. There is also the possibility to perform automatic segmentation of the whole image but it is less precise and reliable.
 
-The model accepts input images in Geotiff format.
+## Image format and size
 
-The output of the model is the segmentation mask of the detected object and it comes in two formats: a png image and GeoTiff image.
+The uploaded images must be georeferenced GeoTiff files. Please bear in mind that the images shouldn't be so large due to the limited hardware resources and for fluid visualization.
 
 ## Repository content
 
@@ -32,28 +30,21 @@ The output of the model is the segmentation mask of the detected object and it c
 ├── imgs
 │   ├── img_1.png
 │   └── img_2.png
-├── model.proto
-├── model_pb2.py
-├── model_pb2_grpc.py
+├── app.proto
+├── app_pb2.py
+├── app_pb2_grpc.py
 ├── pyproject.toml
 ├── requirements.txt
 ├── serve.py
 ├── src
-│   ├── app
-│   └── sam
-├── test-data
-│   ├── T40RBN_20230607T064629_RGB.tif
-│   ├── bbox.cpg
-│   ├── bbox.dbf
-│   ├── bbox.prj
-│   ├── bbox.shp
-│   ├── bbox.shx
-│   ├── palm_roi.cpg
-│   ├── palm_roi.dbf
-│   ├── palm_roi.prj
-│   ├── palm_roi.shp
-│   └── palm_roi.shx
-└── test_image_processor.py
+│   ├── assets
+│   ├── sam
+│   ├── app.py
+│   ├── config.py
+│   ├── sam_utils.py
+│   └── utils.py
+└── test-data
+    └── T40RBN_20230607T064629_RGB.tif
 ```
 
 ## Local Development
@@ -67,31 +58,25 @@ git clone https://github.com/AlbughdadiM/depai-sam.git
 - Go to the repository directory
 
 ```powershell
-cd depai-sam
+cd depai-sam-interactive
 ```
 
-- If the files `model_pb2_grpc.py` and `model_pb2.py` are not there, generate them using
+- If the files `app_pb2_grpc.py` and `app_pb2.py` are not there, generate them using
 
 ```powershell
-python3.10 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. model.proto
+python3.12 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. app.proto
 ```
 
 - Build the docker image
 
 ```powershell
-docker build . -t sam:v0.1
+docker build . -t depai-sam-interactive:v0.1
 ```
 
 - Create a container from the built image
 
 ```powershell
-docker run --name=test -v ./test-data:/data -p 8061:8061 sam:v0.1
-```
-
-- Run the pytest
-
-```powershell
-pytest test_image_processor.py
+docker run --name=test -v ./test-data:/data -p 8061:8061 -p 8062:8062 --env SHARED_FOLDER_PATH=/data depai-sam-interactive:v0.1
 ```
 
 ## Container Registry
@@ -107,14 +92,11 @@ docker login ghcr.io -u USERNAME -p PAT
 - Pull the image
 
 ```powershell
-docker pull ghcr.io/albughdadim/depai-sam:v0.1
+docker pull ghcr.io/albughdadim/depai-sam-interactive:v0.1
 ```
 
 - Create a container
 
 ```powershell
-docker run --name=test -p 8061:8061 ghcr.io/albughdadim/depai-sam:v0.1
+docker run --name=test -v ./test-data:/data -p 8061:8061 -p 8062:8062 --env SHARED_FOLDER_PATH=/data ghcr.io/albughdadim/depai-sam:v0.1
 ```
-
->[!IMPORTANT]
-> Please note how the input is formatted in `test_image_processor.py`. It must respect the specification in `model.proto`.

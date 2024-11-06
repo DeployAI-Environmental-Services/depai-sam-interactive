@@ -69,5 +69,4 @@ src/sam/weights
 # Ignore all subfolders inside folder
 test-data/*/
 
-imgs/
 uploads/
