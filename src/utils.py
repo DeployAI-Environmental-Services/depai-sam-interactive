@@ -197,15 +197,16 @@ def reproject_to_epsg4326(input_path, output_path):
                 reprojected_tiff.read(i)
                 for i in range(1, min(4, reprojected_tiff.count + 1))
             ]
-            img_array = np.stack(bands, axis=-1).astype(np.uint8)
+            img_array = np.stack(bands, axis=-1)
 
             # Normalize and scale to 8-bit if the image is not already in 8-bit range
-            if img_array.dtype != np.uint8:
+            if np.amax(img_array) > 255:
                 img_array = (
                     255
                     * (img_array - img_array.min())
                     / (img_array.max() - img_array.min())
-                ).astype(np.uint8)
+                )
+            img_array = img_array.astype(np.uint8)
 
             # Convert to a PIL image (handling RGB or single-band grayscale)
             if img_array.shape[2] == 3:

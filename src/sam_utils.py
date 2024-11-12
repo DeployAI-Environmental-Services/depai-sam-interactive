@@ -49,6 +49,8 @@ def generate_automatic_mask(
         pred_iou_thresh=pred_iou_thresh,
     )
     img = tiff.imread(image_path)
+    if np.amax(img) > 255:
+        img = 255 * (img - img.min()) / (img.max() - img.min())
     annotation = mask_generator.generate(img)
     one_band_mask = create_mask(img, annotation)
     normalized_img = (one_band_mask - np.min(one_band_mask)) / (  # type: ignore
@@ -88,7 +90,8 @@ def sam_prompt_bbox(
     sam = build_model(model_filename)
     predictor = SamPredictor(sam)
     img = tiff.imread(image_path)
-
+    if np.amax(img) > 255:
+        img = 255 * (img - img.min()) / (img.max() - img.min())
     if bboxes_geo is not None:
         bboxes_geo = geographic_to_pixel_bbox(
             bboxes_geo,
