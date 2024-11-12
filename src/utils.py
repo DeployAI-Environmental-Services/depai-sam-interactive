@@ -191,22 +191,39 @@ def reproject_to_epsg4326(input_path, output_path):
                     resampling=Resampling.nearest,
                 )
 
-        reprojected_image = tiff.imread(output_path)
-        # reprojected_image = (
-        #     (reprojected_image - reprojected_image.min())
-        #     / (reprojected_image.max() - reprojected_image.min())
-        #     * 255
-        # )
-        reprojected_image = reprojected_image.astype(np.uint8)
+        with rasterio.open(output_path) as reprojected_tiff:
+            # Read the image data (for simplicity, take the first 3 bands if RGB)
+            bands = [
+                reprojected_tiff.read(i)
+                for i in range(1, min(4, reprojected_tiff.count + 1))
+            ]
+            img_array = np.stack(bands, axis=-1).astype(np.uint8)
 
-        # Create a PIL image from the array
-        png_image = Image.fromarray(reprojected_image)
-        img_byte_arr = io.BytesIO()
-        png_image.save(img_byte_arr, format="PNG")
-        img_byte_arr.seek(0)  # Go to the start
-        png_file_path = output_path.split(".")[0] + ".png"
-        with open(png_file_path, "wb") as f:
-            f.write(img_byte_arr.getbuffer())
+            # Normalize and scale to 8-bit if the image is not already in 8-bit range
+            if img_array.dtype != np.uint8:
+                img_array = (
+                    255
+                    * (img_array - img_array.min())
+                    / (img_array.max() - img_array.min())
+                ).astype(np.uint8)
+
+            # Convert to a PIL image (handling RGB or single-band grayscale)
+            if img_array.shape[2] == 3:
+                png_image = Image.fromarray(img_array, mode="RGB")
+            else:
+                raise ValueError("Unsupported number of bands for PNG export")
+
+            # Save the PNG to bytes
+            img_byte_arr = io.BytesIO()
+            png_image.thumbnail((2000, 2000), Image.Resampling.LANCZOS)
+            png_image.save(img_byte_arr, format="PNG")
+            img_byte_arr.seek(0)
+
+            # Save PNG to disk
+            png_file_path = output_path.rsplit(".", 1)[0] + ".png"
+            with open(png_file_path, "wb") as f:
+                f.write(img_byte_arr.getbuffer())
+
     return reprojected_bounds, img_byte_arr.getvalue(), png_file_path
 
 

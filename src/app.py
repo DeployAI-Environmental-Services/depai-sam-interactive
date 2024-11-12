@@ -366,14 +366,34 @@ app.layout = html.Div(
 
 @app.callback(
     Output("url", "href"),
-    [Input("refresh-button", "n_clicks"), Input("downloaded_image_path", "data")],
+    [
+        Input("refresh-button", "n_clicks"),
+        Input("downloaded_image_path", "data"),
+        Input("output-data-upload", "data"),
+    ],
     prevent_initial_call=True,
 )
-def refresh_page(n_clicks, downloaded_imgs):
+def refresh_page(n_clicks, downloaded_imgs, uploaded_data):
     if n_clicks is not None and n_clicks > 0:
         if downloaded_imgs is not None:
             for img in downloaded_imgs:
-                os.remove(img)
+                try:
+                    os.remove(img)
+                except FileNotFoundError:
+                    pass
+        if uploaded_data is not None:
+            try:
+                os.remove(uploaded_data[0][0])
+            except FileNotFoundError:
+                pass
+            try:
+                os.remove(uploaded_data[0][1])
+            except FileNotFoundError:
+                pass
+            try:
+                os.remove(uploaded_data[0][3])
+            except FileNotFoundError:
+                pass
         return "/"
     return dash.no_update
 
@@ -416,9 +436,8 @@ def update_output_upload(contents, filename):
         (leaflet_bounds[0][0] + leaflet_bounds[1][0]) / 2,
         (leaflet_bounds[0][1] + leaflet_bounds[1][1]) / 2,
     ]
-    encoded_img = base64.b64encode(img_byte_arr).decode("ascii")
+    encoded_img = base64.b64encode(img_byte_arr).decode("utf-8")
     encoded_img = "{}{}".format("data:image/png;base64, ", encoded_img)
-    print("also here")
     list_children = dl.Map(
         [
             dl.LayersControl(
@@ -465,7 +484,7 @@ def update_output_upload(contents, filename):
         zoom=12,
         bounds=leaflet_bounds,
     )
-    return [[reproj_file_path, png_path, leaflet_bounds]], list_children
+    return [[reproj_file_path, png_path, leaflet_bounds, file_path]], list_children
 
 
 @app.callback(
@@ -552,13 +571,12 @@ def run_segmentation(
     stability_score_thresh,
     input_data,
 ):
-    if n_clicks == 0 or table_data is None:
+    if n_clicks == 0 or (table_data is None and input_data is None):
         raise PreventUpdate
-    if n_clicks == 1 and table_data is not None:
-        roi = [row for row in table_data if row["type"] == "ROI BBox"][0]
-        if input_data:
+    else:
+        if n_clicks > 0 and input_data:
+            unique_types = []
             image_bounds = input_data[0][2]
-            print(input_data)
             tmp_img_path = input_data[0][0]
             roi_bbox = [
                 float(image_bounds[0][1]),  # x_min (longitude of SW)
@@ -570,7 +588,8 @@ def run_segmentation(
                 (image_bounds[0][0] + image_bounds[1][0]) / 2,
                 (image_bounds[0][1] + image_bounds[1][1]) / 2,
             ]
-        else:
+        if n_clicks > 0 and table_data is not None and input_data is None:
+            roi = [row for row in table_data if row["type"] == "ROI BBox"][0]
             roi_bbox = [
                 float(roi["x_min"]),
                 float(roi["y_min"]),
@@ -585,9 +604,12 @@ def run_segmentation(
             tmp_img_path = download_from_wms(
                 WMS_URL, roi_bbox, LAYER, IMAGE_FORMAT, WORK_DIR, RESOLUTION  # type: ignore
             )
-        types = [row["type"] for row in table_data]
-        unique_types = list(set(types))
-        if len(table_data) == 2 and unique_types == ["ROI BBox"]:
+        if table_data:
+            types = [row["type"] for row in table_data]
+            unique_types = list(set(types))
+        else:
+            unique_types = ["ROI BBox"]
+        if unique_types == ["ROI BBox"]:
             segmetnation_path, png_path = generate_automatic_mask(
                 tmp_img_path, sam_model, pred_iou_thresh, stability_score_thresh
             )
@@ -624,7 +646,7 @@ def run_segmentation(
             segmetnation_path, png_path = sam_prompt_bbox(
                 tmp_img_path, bboxes_geo, stacked_points, labels, sam_model, roi_bbox
             )
-        encoded_img = base64.b64encode(open(png_path, "rb").read()).decode("ascii")
+        encoded_img = base64.b64encode(open(png_path, "rb").read()).decode("utf-8")
         encoded_img = "{}{}".format("data:image/png;base64, ", encoded_img)
         list_children_items = [
             dl.LayersControl(
@@ -636,7 +658,7 @@ def run_segmentation(
                 id="layers-control",
                 collapsed=True,
             ),
-            dl.ImageOverlay(opacity=0.5, url=encoded_img, bounds=image_bounds),
+            dl.ImageOverlay(opacity=0.8, url=encoded_img, bounds=image_bounds),
             dl.FeatureGroup(
                 [
                     dl.LocateControl(
@@ -662,11 +684,11 @@ def run_segmentation(
         ]
         if input_data:
             encoded_img = base64.b64encode(open(input_data[0][1], "rb").read()).decode(
-                "ascii"
+                "utf-8"
             )
             encoded_img = "{}{}".format("data:image/png;base64, ", encoded_img)
             list_children_items.insert(
-                0, dl.ImageOverlay(opacity=0.5, url=encoded_img, bounds=image_bounds)
+                0, dl.ImageOverlay(opacity=1, url=encoded_img, bounds=image_bounds)
             )
 
         list_children = dl.Map(
